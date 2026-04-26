@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Data - Stock Prediction</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+/* ===== RESET & BASE STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Dark Theme Colors - Yahoo Finance Inspired */
+    --bg-primary: #0a0c10;
+    --bg-secondary: #1a1e24;
+    --bg-card: #1e2229;
+    --bg-hover: #3a404b;  /* Changed to lighter hover */
+    --text-primary: #ffffff;
+    --text-secondary: #b2b9c4;
+    --text-tertiary: #8b95a1;
+    --accent-blue: #2f7be4;
+    --accent-green: #00c853;
+    --accent-red: #ff3b5c;
+    --accent-yellow: #ffb300;
+    --border-color: #2f3540;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    
+    /* Chart Colors */
+    --chart-line: #2f7be4;
+    --chart-gradient-start: rgba(47, 123, 228, 0.2);
+    --chart-gradient-end: rgba(47, 123, 228, 0);
+    --chart-point: #ffffff;
+}
+
+/* Light Mode */
+.light-mode {
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-hover: #e5e7eb;  /* Light grey hover */
+    --text-primary: #1a2634;
+    --text-secondary: #4a5568;
+    --text-tertiary: #718096;
+    --accent-blue: #2563eb;
+    --accent-green: #059669;
+    --accent-red: #dc2626;
+    --accent-yellow: #d97706;
+    --border-color: #e2e8f0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --chart-line: #2563eb;
+    --chart-gradient-start: rgba(37, 99, 235, 0.2);
+    --chart-gradient-end: rgba(37, 99, 235, 0);
+    --chart-point: #2563eb;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #141a24 100%);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    line-height: 1.6;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Light mode body background */
+.light-mode body {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #e5e7eb 100%);
+}
+
+/* Animated background pattern */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(47, 123, 228, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(0, 200, 83, 0.03) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ===== HEADER STYLES ===== */
+header {
+    background: linear-gradient(135deg, #0f151f 0%, #1a212c 100%);
+    color: var(--text-primary);
+    padding: 25px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+    animation: slideIn 0.8s ease-out;
+    z-index: 1;
+}
+
+/* Light mode header */
+.light-mode header {
+    background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.03),
+        transparent
+    );
+    transform: rotate(45deg);
+    animation: shimmer 8s infinite;
+}
+
+header h1 {
+    font-size: 2.2em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 0;
+    position: relative;
+    display: inline-block;
+    background: linear-gradient(135deg, #fff, var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    background: rgba(47, 123, 228, 0.2);
+    border: 1px solid var(--accent-blue);
+    border-radius: 40px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+}
+
+.theme-toggle:hover {
+    background: var(--accent-blue);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.theme-toggle i {
+    font-size: 1.1em;
+}
+
+.light-mode .theme-toggle .fa-sun {
+    display: inline-block;
+    color: var(--accent-yellow);
+}
+
+.light-mode .theme-toggle .fa-moon {
+    display: none;
+}
+
+.theme-toggle .fa-sun {
+    display: none;
+}
+
+header h1 i {
+    margin-right: 12px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Company badge */
+.company-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(47, 123, 228, 0.15);
+    padding: 8px 20px;
+    border-radius: 40px;
+    margin-top: 12px;
+    border: 1px solid var(--accent-blue);
+    animation: scaleIn 0.8s ease-out 0.3s both;
+}
+
+.company-badge i {
+    color: var(--accent-blue);
+    margin-right: 8px;
+    font-size: 1.1em;
+}
+
+.company-badge span {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+}
+
+.company-badge .company-symbol {
+    color: var(--accent-blue);
+    font-weight: 700;
+    margin-left: 5px;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.container {
+    max-width: 1400px;
+    width: 95%;
+    margin: 30px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== KEY METRICS CARDS ===== */
+.metrics-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0 30px;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.metric-card {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 20px var(--shadow-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: scaleIn 0.6s ease-out;
+    animation-fill-mode: both;
+    backdrop-filter: blur(10px);
+}
+
+.metric-card:nth-child(1) { animation-delay: 0.1s; }
+.metric-card:nth-child(2) { animation-delay: 0.2s; }
+.metric-card:nth-child(3) { animation-delay: 0.3s; }
+.metric-card:nth-child(4) { animation-delay: 0.4s; }
+.metric-card:nth-child(5) { animation-delay: 0.5s; }
+.metric-card:nth-child(6) { animation-delay: 0.6s; }
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-blue);
+    box-shadow: 0 12px 30px rgba(47, 123, 228, 0.2);
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.metric-card:hover::before {
+    transform: scaleX(1);
+}
+
+.metric-label {
+    color: var(--text-tertiary);
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.metric-label i {
+    color: var(--accent-blue);
+    font-size: 1.1em;
+}
+
+.metric-value {
+    color: var(--text-primary);
+    font-size: 1.8em;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    line-height: 1.2;
+    margin-bottom: 5px;
+    animation: countUp 0.8s ease-out;
+}
+
+.metric-change {
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    background: var(--bg-secondary);
+    width: fit-content;
+}
+
+.metric-change.positive {
+    color: var(--accent-green);
+}
+
+.metric-change.negative {
+    color: var(--accent-red);
+}
+
+.metric-change i {
+    font-size: 0.8em;
+}
+
+.metric-sub {
+    color: var(--text-tertiary);
+    font-size: 0.75em;
+    margin-top: 8px;
+}
+
+/* ===== TABLE STYLES ===== */
+.table-wrapper {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 25px;
+    margin: 30px 0;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    animation: fadeIn 1s ease-out 0.3s both;
+    overflow-x: auto;
+}
+
+.table-wrapper h3 {
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-wrapper h3 i {
+    color: var(--accent-blue);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    background: transparent;
+}
+
+thead tr {
+    animation: slideIn 0.6s ease-out;
+}
+
+th {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 12px;
+    border: none;
+    position: relative;
+}
+
+th:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+th:last-child {
+    border-radius: 0 12px 12px 0;
+}
+
+tbody tr {
+    background: var(--bg-hover);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    animation: fadeIn 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+/* FIXED HOVER - Numbers will now be visible */
+tbody tr:hover {
+    background: var(--accent-blue) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px var(--shadow-color);
+}
+
+/* Text color on hover - Make all text white for better visibility */
+tbody tr:hover td {
+    color: #ffffff !important;
+}
+
+tbody tr:hover td:first-child {
+    color: #ffffff !important;
+}
+
+tbody tr:hover .price-up,
+tbody tr:hover .price-down {
+    color: #ffffff !important;
+}
+
+tbody tr:nth-child(1) { animation-delay: 0.1s; }
+tbody tr:nth-child(2) { animation-delay: 0.15s; }
+tbody tr:nth-child(3) { animation-delay: 0.2s; }
+tbody tr:nth-child(4) { animation-delay: 0.25s; }
+tbody tr:nth-child(5) { animation-delay: 0.3s; }
+tbody tr:nth-child(6) { animation-delay: 0.35s; }
+tbody tr:nth-child(7) { animation-delay: 0.4s; }
+tbody tr:nth-child(8) { animation-delay: 0.45s; }
+tbody tr:nth-child(9) { animation-delay: 0.5s; }
+tbody tr:nth-child(10) { animation-delay: 0.55s; }
+tbody tr:nth-child(11) { animation-delay: 0.6s; }
+tbody tr:nth-child(12) { animation-delay: 0.65s; }
+tbody tr:nth-child(13) { animation-delay: 0.7s; }
+tbody tr:nth-child(14) { animation-delay: 0.75s; }
+
+td {
+    padding: 16px 12px;
+    border: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+td:first-child {
+    border-radius: 12px 0 0 12px;
+    font-weight: 600;
+    color: var(--accent-blue);
+}
+
+td:last-child {
+    border-radius: 0 12px 12px 0;
+}
+
+/* Price styling */
+td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(5) {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+/* Volume styling */
+td:nth-child(6) {
+    font-family: 'Courier New', monospace;
+    color: var(--text-secondary);
+}
+
+/* Price change indicators */
+.price-up {
+    color: var(--accent-green) !important;
+    position: relative;
+}
+
+.price-down {
+    color: var(--accent-red) !important;
+    position: relative;
+}
+
+/* ===== CHART CONTAINER STYLES - COMPACT VERSION ===== */
+.chart-container {
+    background: var(--bg-card);
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    animation: fadeIn 1s ease-out 0.5s both;
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px var(--shadow-color);
+    border-color: var(--accent-blue);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.chart-header h3 {
+    font-size: 1.4em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-header h3 i {
+    color: var(--accent-blue);
+}
+
+.chart-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.chart-btn {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chart-btn:hover {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+}
+
+.chart-btn.active {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    margin: 10px 0;
+}
+
+#companyChart {
+    width: 100% !important;
+    height: 300px !important;
+    max-height: 300px;
+}
+
+/* Chart Footer Stats */
+.chart-footer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.price-stat {
+    text-align: center;
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border-radius: 40px;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.price-stat:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+    background: var(--bg-hover);
+}
+
+.price-stat .stat-label {
+    color: var(--text-tertiary);
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 8px;
+}
+
+.price-stat .stat-value {
+    color: var(--accent-blue);
+    font-weight: 700;
+    font-size: 1.1em;
+    font-family: 'Courier New', monospace;
+}
+
+/* ===== BUTTON STYLES ===== */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+    animation: fadeIn 1s ease-out 0.7s both;
+}
+
+.btn {
+    padding: 16px 32px;
+    border: none;
+    border-radius: 40px;
+    font-size: 1.1em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn i {
+    font-size: 1.2em;
+    transition: transform 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), #1a4fa8);
+    color: white;
+    box-shadow: 0 4px 15px rgba(47, 123, 228, 0.4);
+    animation: pulseGlow 3s infinite;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1a4fa8, var(--accent-blue));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(47, 123, 228, 0.6);
+    animation: none;
+}
+
+.btn-primary:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary:hover i {
+    transform: translateX(5px);
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    transform: translateY(-3px);
+    border-color: var(--accent-blue);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+.btn-secondary:hover i {
+    transform: scale(1.1);
+}
+
+/* ===== LOADING STATES ===== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: rotate 1s linear infinite;
+}
+
+.loading-text {
+    margin-top: 20px;
+    color: var(--text-secondary);
+    font-size: 1.1em;
+}
+
+/* ===== TOOLTIP STYLES ===== */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 0.85em;
+    border-radius: 8px;
+    white-space: nowrap;
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 100;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+    visibility: visible;
+    bottom: calc(100% + 10px);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(47, 123, 228, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(47, 123, 228, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(47, 123, 228, 0); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ===== CUSTOM SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-blue);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+    .container {
+        width: 98%;
+        padding: 0 10px;
+    }
+    
+    .metrics-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .chart-wrapper {
+        height: 280px;
+    }
+    
+    #companyChart {
+        height: 280px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.6em;
+    }
+    
+    .metrics-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .metric-value {
+        font-size: 1.4em;
+    }
+    
+    .table-wrapper {
+        padding: 15px;
+    }
+    
+    th, td {
+        padding: 12px 8px;
+        font-size: 0.9em;
+    }
+    
+    .button-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .chart-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .chart-wrapper {
+        height: 250px;
+    }
+    
+    #companyChart {
+        height: 250px !important;
+    }
+    
+    .price-stat {
+        min-width: calc(50% - 20px);
+        flex: 1;
+    }
+    
+    .chart-footer {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.3em;
+    }
+    
+    .metrics-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .company-badge {
+        width: 90%;
+        justify-content: center;
+    }
+    
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .chart-wrapper {
+        height: 200px;
+    }
+    
+    #companyChart {
+        height: 200px !important;
+    }
+    
+    .price-stat {
+        min-width: 100%;
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .btn, .chart-controls {
+        display: none;
+    }
+    
+    .metric-card, .table-wrapper, .chart-container {
+        break-inside: avoid;
+        border: 1px solid #ddd;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div style="text-align: center;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading company data...</div>
+    </div>
+</div>
+
+<header>
+    <div class="header-content">
+        <h1>
+            <i class="fas fa-chart-line"></i>
+            <span id="companyTitle">Company Data</span>
+        </h1>
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+            <span id="themeText">Light Mode</span>
+        </div>
+    </div>
+    <div class="company-badge" id="companyBadge">
+        <i class="fas fa-building"></i>
+        <span>Analyzing: <span id="companySymbol" class="company-symbol">RELIANCE.NS</span></span>
+    </div>
+</header>
+
+<div class="container">
+    
+    <!-- Key Metrics Cards (Will be populated by JS) -->
+    <div class="metrics-container" id="metricsContainer">
+        <!-- Dynamically populated -->
+    </div>
+    
+    <!-- Data Table -->
+    <div class="table-wrapper">
+        <h3>
+            <i class="fas fa-table"></i>
+            Historical Data (Last 14 Days)
+        </h3>
+        <table id="companyTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Open <i class="fas fa-info-circle" data-tooltip="Opening price of the day"></i></th>
+                    <th>High <i class="fas fa-info-circle" data-tooltip="Highest price of the day"></i></th>
+                    <th>Low <i class="fas fa-info-circle" data-tooltip="Lowest price of the day"></i></th>
+                    <th>Close <i class="fas fa-info-circle" data-tooltip="Closing price of the day"></i></th>
+                    <th>Volume <i class="fas fa-info-circle" data-tooltip="Number of shares traded"></i></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
+    <!-- Compact Chart -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                Price Trend Analysis
+            </h3>
+            <div class="chart-controls">
+                <button class="chart-btn active" onclick="changeChartType('line')">
+                    <i class="fas fa-chart-line"></i> Line
+                </button>
+                <button class="chart-btn" onclick="changeChartType('bar')">
+                    <i class="fas fa-chart-bar"></i> Bar
+                </button>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="companyChart"></canvas>
+        </div>
+        
+        <!-- Mini price stats below chart -->
+        <div class="chart-footer">
+            <div class="price-stat">
+                <span class="stat-label">Min</span>
+                <span class="stat-value" id="minPrice">₹0</span>
+            </div>
+            <div class="price-stat">
+                <span class="stat-label">Avg</span>
+                <span class="stat-value" id="avgPrice">₹0</span>
+            </div>
+            <div class="price-stat">
+                <span class="stat-label">Max</span>
+                <span class="stat-value" id="maxPrice">₹0</span>
+            </div>
+            <div class="price-stat">
+                <span class="stat-label">Volatility</span>
+                <span class="stat-value" id="volatility">0%</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="button-container">
+        <button class="btn btn-primary" onclick="goToPrediction()">
+            <span>Predict Stock Price</span>
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        <button class="btn btn-secondary" onclick="changeCompany()">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Change Company</span>
+        </button>
+    </div>
+    
+</div>
+
+<script>
+// =============================================
+// THEME MANAGEMENT - ADDED
+// =============================================
+function toggleTheme() {
+    const body = document.body;
+    const themeText = document.getElementById('themeText');
+    
+    if (body.classList.contains('light-mode')) {
+        body.classList.remove('light-mode');
+        themeText.textContent = 'Dark Mode';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        body.classList.add('light-mode');
+        themeText.textContent = 'Light Mode';
+        localStorage.setItem('theme', 'light');
+    }
+    
+    // Refresh chart colors
+    if (chartInstance && chartData.dates.length > 0) {
+        createChart(chartData.dates, chartData.prices, currentChartType);
+    }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('themeText').textContent = 'Light Mode';
+} else {
+    document.getElementById('themeText').textContent = 'Dark Mode';
+}
+
+// Global variables
+let chartInstance = null;
+let chartData = {
+    dates: [],
+    prices: []
+};
+let currentChartType = 'line';
+
+// Check if company is selected
+const company = localStorage.getItem("selectedCompany");
+const companyName = localStorage.getItem("selectedCompanyName") || company;
+
+if(!company){
+    window.location.href = "select_company.html";
+}
+
+// Update header
+document.getElementById("companyTitle").innerText = `${companyName} - Stock Analysis`;
+document.getElementById("companySymbol").innerText = company;
+
+const API_URL = `http://127.0.0.1:8000/stocks/company/${company}`;
+
+// Show loading overlay
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+// Hide loading overlay
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// Format volume
+function formatVolume(volume) {
+    if (volume >= 10000000) {
+        return (volume / 10000000).toFixed(2) + ' Cr';
+    } else if (volume >= 100000) {
+        return (volume / 100000).toFixed(2) + ' L';
+    } else if (volume >= 1000) {
+        return (volume / 1000).toFixed(2) + ' K';
+    }
+    return volume.toString();
+}
+
+// Calculate metrics from data
+function calculateMetrics(data) {
+    const prices = data.map(row => row.Close);
+    const volumes = data.map(row => row.Volume);
+    const dates = data.map(row => new Date(row.Date));
+    
+    const currentPrice = prices[prices.length - 1];
+    const prevPrice = prices[prices.length - 2] || currentPrice;
+    const priceChange = currentPrice - prevPrice;
+    const priceChangePercent = (priceChange / prevPrice) * 100;
+    
+    const highestPrice = Math.max(...prices);
+    const lowestPrice = Math.min(...prices);
+    const avgVolume = volumes.reduce((a, b) => a + b, 0) / volumes.length;
+    const totalVolume = volumes.reduce((a, b) => a + b, 0);
+    
+    // Calculate trend (simple moving average of last 3 days vs previous 3 days)
+    const recentAvg = prices.slice(-3).reduce((a, b) => a + b, 0) / 3;
+    const previousAvg = prices.slice(-6, -3).reduce((a, b) => a + b, 0) / 3;
+    const trend = recentAvg - previousAvg;
+    
+    return {
+        currentPrice,
+        priceChange,
+        priceChangePercent,
+        highestPrice,
+        lowestPrice,
+        avgVolume,
+        totalVolume,
+        trend,
+        dataPoints: data.length
+    };
+}
+
+// Update metrics cards
+function updateMetrics(metrics) {
+    const container = document.getElementById('metricsContainer');
+    
+    container.innerHTML = `
+        <div class="metric-card" data-tooltip="Current market price">
+            <div class="metric-label">
+                <i class="fas fa-tag"></i> Current Price
+            </div>
+            <div class="metric-value">₹ ${metrics.currentPrice.toFixed(2)}</div>
+            <div class="metric-change ${metrics.priceChange >= 0 ? 'positive' : 'negative'}">
+                <i class="fas ${metrics.priceChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                ${Math.abs(metrics.priceChange).toFixed(2)} (${Math.abs(metrics.priceChangePercent).toFixed(2)}%)
+            </div>
+        </div>
+        
+        <div class="metric-card" data-tooltip="14-day high">
+            <div class="metric-label">
+                <i class="fas fa-arrow-up"></i> 14-Day High
+            </div>
+            <div class="metric-value">₹ ${metrics.highestPrice.toFixed(2)}</div>
+            <div class="metric-sub">Peak price</div>
+        </div>
+        
+        <div class="metric-card" data-tooltip="14-day low">
+            <div class="metric-label">
+                <i class="fas fa-arrow-down"></i> 14-Day Low
+            </div>
+            <div class="metric-value">₹ ${metrics.lowestPrice.toFixed(2)}</div>
+            <div class="metric-sub">Bottom price</div>
+        </div>
+        
+        <div class="metric-card" data-tooltip="Average daily volume">
+            <div class="metric-label">
+                <i class="fas fa-chart-bar"></i> Avg Volume
+            </div>
+            <div class="metric-value">${formatVolume(metrics.avgVolume)}</div>
+            <div class="metric-sub">Per day</div>
+        </div>
+        
+        <div class="metric-card" data-tooltip="Total volume (14 days)">
+            <div class="metric-label">
+                <i class="fas fa-database"></i> Total Volume
+            </div>
+            <div class="metric-value">${formatVolume(metrics.totalVolume)}</div>
+            <div class="metric-sub">14-day total</div>
+        </div>
+        
+        <div class="metric-card" data-tooltip="Price trend">
+            <div class="metric-label">
+                <i class="fas fa-chart-line"></i> Trend
+            </div>
+            <div class="metric-value ${metrics.trend >= 0 ? 'positive' : 'negative'}">
+                ${metrics.trend >= 0 ? '↗' : '↘'} ${Math.abs(metrics.trend).toFixed(2)}
+            </div>
+            <div class="metric-sub">3-day momentum</div>
+        </div>
+    `;
+}
+
+// Update chart footer stats
+function updateChartStats(prices) {
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+    
+    // Calculate volatility (standard deviation / mean)
+    const variance = prices.reduce((acc, price) => acc + Math.pow(price - avgPrice, 2), 0) / prices.length;
+    const stdDev = Math.sqrt(variance);
+    const volatility = (stdDev / avgPrice) * 100;
+    
+    document.getElementById('minPrice').textContent = `₹${minPrice.toFixed(2)}`;
+    document.getElementById('maxPrice').textContent = `₹${maxPrice.toFixed(2)}`;
+    document.getElementById('avgPrice').textContent = `₹${avgPrice.toFixed(2)}`;
+    document.getElementById('volatility').textContent = `${volatility.toFixed(1)}%`;
+}
+
+// Color code prices in table
+function colorCodePrices() {
+    const rows = document.querySelectorAll('#companyTable tbody tr');
+    
+    rows.forEach(row => {
+        const cells = row.cells;
+        if (cells.length >= 5) {
+            const open = parseFloat(cells[1].textContent);
+            const close = parseFloat(cells[4].textContent);
+            
+            if (close > open) {
+                cells[4].classList.add('price-up');
+            } else if (close < open) {
+                cells[4].classList.add('price-down');
+            }
+        }
+    });
+}
+
+// Load company data
+async function loadCompanyData(){
+    showLoading();
+    
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        
+        const tableBody = document.querySelector("#companyTable tbody");
+        tableBody.innerHTML = ''; // Clear existing rows
+        
+        let dates = [];
+        let closingPrices = [];
+        
+        // Calculate metrics
+        const metrics = calculateMetrics(data);
+        updateMetrics(metrics);
+        
+        data.forEach((row, index) => {
+            const date = new Date(row.Date).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${date}</td>
+                <td>${row.Open.toFixed(2)}</td>
+                <td>${row.High.toFixed(2)}</td>
+                <td>${row.Low.toFixed(2)}</td>
+                <td>${row.Close.toFixed(2)}</td>
+                <td>${formatVolume(row.Volume)}</td>
+            `;
+            
+            tableBody.appendChild(tr);
+            
+            dates.push(date);
+            closingPrices.push(row.Close);
+        });
+        
+        // Store chart data globally
+        chartData = {
+            dates: dates,
+            prices: closingPrices
+        };
+        
+        // Color code prices
+        colorCodePrices();
+        
+        // Create chart
+        createChart(dates, closingPrices, 'line');
+        updateChartStats(closingPrices);
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        showNotification('Error loading company data', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Create chart function
+function createChart(labels, prices, type = 'line') {
+    const ctx = document.getElementById("companyChart").getContext("2d");
+    
+    // Destroy existing chart if it exists
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+    
+    // Get theme colors
+    const isLight = document.body.classList.contains('light-mode');
+    const textColor = isLight ? '#4a5568' : '#b2b9c4';
+    const gridColor = isLight ? '#e2e8f0' : '#2f3540';
+    const lineColor = isLight ? '#2563eb' : '#2f7be4';
+    const pointColor = isLight ? '#2563eb' : '#ffffff';
+    
+    // Create gradient for line chart
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, isLight ? 'rgba(37, 99, 235, 0.2)' : 'rgba(47, 123, 228, 0.3)');
+    gradient.addColorStop(1, 'rgba(47, 123, 228, 0)');
+    
+    // Calculate min and max for better y-axis scaling
+    const minPrice = Math.min(...prices) * 0.998;
+    const maxPrice = Math.max(...prices) * 1.002;
+    
+    chartInstance = new Chart(ctx, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Closing Price (₹)',
+                data: prices,
+                borderColor: lineColor,
+                backgroundColor: type === 'line' ? gradient : lineColor,
+                borderWidth: 2.5,
+                pointBackgroundColor: pointColor,
+                pointBorderColor: lineColor,
+                pointBorderWidth: 1.5,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: '#ffffff',
+                pointHoverBorderWidth: 2,
+                tension: 0.3,
+                fill: type === 'line' ? true : false,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1200,
+                easing: 'easeInOutQuart'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isLight ? '#ffffff' : '#1e2229',
+                    titleColor: isLight ? '#1a2634' : '#ffffff',
+                    bodyColor: textColor,
+                    borderColor: lineColor,
+                    borderWidth: 1,
+                    padding: 8,
+                    cornerRadius: 6,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `₹ ${context.parsed.y.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: minPrice,
+                    max: maxPrice,
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        callback: function(value) {
+                            return '₹' + value.toFixed(0);
+                        },
+                        stepSize: (maxPrice - minPrice) / 4,
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        maxRotation: 30,
+                        minRotation: 30,
+                        font: {
+                            size: 9
+                        },
+                        maxTicksLimit: 8
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                    left: 5,
+                    right: 5
+                }
+            }
+        }
+    });
+}
+
+// Change chart type
+function changeChartType(type) {
+    currentChartType = type;
+    
+    // Update active button
+    document.querySelectorAll('.chart-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Recreate chart with new type
+    createChart(chartData.dates, chartData.prices, type);
+}
+
+// Navigation functions
+function goToPrediction() {
+    showNotification('Loading prediction options...', 'success');
+    setTimeout(() => {
+        window.location.href = "prediction_options.html";
+    }, 500);
+}
+
+function changeCompany() {
+    showNotification('Returning to company selection...', 'success');
+    setTimeout(() => {
+        window.location.href = "select_company.html";
+    }, 500);
+}
+
+// Show notification
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'error' ? 'var(--accent-red)' : 'var(--accent-green)'};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        z-index: 10000;
+        animation: slideInRight 0.3s ease-out;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+        ${message}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 2500);
+}
+
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadCompanyData();
+});
+</script>
+
+</body>
+</html>

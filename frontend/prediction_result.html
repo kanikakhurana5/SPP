@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prediction Result - Stock Prediction</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+/* ===== RESET & BASE STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Light Mode (Default) */
+:root {
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-hover: #f0f3f8;
+    --text-primary: #1a2634;
+    --text-secondary: #4a5568;
+    --text-tertiary: #718096;
+    --accent-blue: #2563eb;
+    --accent-green: #059669;
+    --accent-red: #dc2626;
+    --accent-yellow: #d97706;
+    --accent-purple: #7c3aed;
+    --border-color: #e2e8f0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg: #f8fafc;
+    --success-bg: #d1fae5;
+    --warning-bg: #fef3c7;
+    --error-bg: #fee2e2;
+    --chart-grid: #e2e8f0;
+}
+
+/* Dark Mode */
+.dark-mode {
+    --bg-primary: #0a0c10;
+    --bg-secondary: #1a1e24;
+    --bg-card: #1e2229;
+    --bg-hover: #2a2f38;
+    --text-primary: #ffffff;
+    --text-secondary: #b2b9c4;
+    --text-tertiary: #8b95a1;
+    --accent-blue: #2f7be4;
+    --accent-green: #00c853;
+    --accent-red: #ff3b5c;
+    --accent-yellow: #ffb300;
+    --accent-purple: #8b5cf6;
+    --border-color: #2f3540;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --input-bg: #262b33;
+    --success-bg: #064e3b;
+    --warning-bg: #78350f;
+    --error-bg: #7f1d1d;
+    --chart-grid: #2f3540;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 var(--accent-blue);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    }
+}
+
+/* ===== HEADER STYLES ===== */
+header {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+header h1 {
+    font-size: 1.8em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+header h1 i {
+    color: var(--accent-blue);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 40px;
+    padding: 8px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--bg-hover);
+    transform: translateY(-2px);
+}
+
+.theme-toggle i {
+    font-size: 1.2em;
+}
+
+.dark-mode .theme-toggle .fa-sun {
+    display: inline-block;
+    color: var(--accent-yellow);
+}
+
+.dark-mode .theme-toggle .fa-moon {
+    display: none;
+}
+
+.theme-toggle .fa-sun {
+    display: none;
+}
+
+/* Company Badge */
+.company-badge {
+    background: var(--bg-card);
+    padding: 8px 20px;
+    border-radius: 40px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.company-badge i {
+    color: var(--accent-blue);
+}
+
+.company-badge .company-symbol {
+    font-weight: 700;
+    color: var(--accent-blue);
+}
+
+/* ===== MAIN CONTAINER ===== */
+.container {
+    max-width: 1400px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* ===== BACK BUTTON ===== */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: var(--bg-hover);
+    transform: translateX(-5px);
+}
+
+/* ===== PREDICTION CARD ===== */
+.prediction-card {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    animation: scaleIn 0.6s ease-out;
+    margin-bottom: 30px;
+}
+
+.prediction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.prediction-header h2 {
+    font-size: 1.8em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.prediction-header h2 i {
+    color: var(--accent-blue);
+}
+
+.prediction-type-badge {
+    background: var(--accent-blue);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+/* ===== MARKET STATUS ===== */
+.market-status {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.status-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 30px;
+    background: var(--bg-card);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.status-dot.open {
+    background: var(--accent-green);
+    box-shadow: 0 0 10px var(--accent-green);
+}
+
+.status-dot.closed {
+    background: var(--accent-red);
+}
+
+.holidays-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.holiday-badge {
+    background: var(--bg-card);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.holiday-badge i {
+    color: var(--accent-yellow);
+    font-size: 0.8em;
+}
+
+/* ===== PRICE GRID ===== */
+.price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.price-item {
+    background: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    animation: fadeIn 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.price-item:nth-child(1) { animation-delay: 0.1s; }
+.price-item:nth-child(2) { animation-delay: 0.2s; }
+.price-item:nth-child(3) { animation-delay: 0.3s; }
+.price-item:nth-child(4) { animation-delay: 0.4s; }
+.price-item:nth-child(5) { animation-delay: 0.5s; }
+
+.price-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-blue);
+}
+
+.price-label {
+    color: var(--text-tertiary);
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-label i {
+    color: var(--accent-blue);
+}
+
+.price-value {
+    font-size: 2em;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: var(--text-primary);
+}
+
+.price-change {
+    font-size: 0.9em;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.price-change.positive {
+    color: var(--accent-green);
+}
+
+.price-change.negative {
+    color: var(--accent-red);
+}
+
+/* ===== BUY/SELL LEVELS SECTION ===== */
+.levels-section {
+    margin: 40px 0;
+    animation: fadeIn 0.8s ease-out 0.3s both;
+}
+
+.section-title {
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--accent-blue);
+}
+
+.levels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.level-card {
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.level-card.buy-card {
+    border-left: 4px solid var(--accent-green);
+}
+
+.level-card.sell-card {
+    border-left: 4px solid var(--accent-red);
+}
+
+.level-card.stop-card {
+    border-left: 4px solid var(--accent-yellow);
+}
+
+.level-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px var(--shadow-color);
+}
+
+.level-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.level-header i {
+    font-size: 1.4em;
+}
+
+.buy-card .level-header i {
+    color: var(--accent-green);
+}
+
+.sell-card .level-header i {
+    color: var(--accent-red);
+}
+
+.stop-card .level-header i {
+    color: var(--accent-yellow);
+}
+
+.level-list {
+    list-style: none;
+    padding: 0;
+}
+
+.level-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.level-list li:last-child {
+    border-bottom: none;
+}
+
+.level-name {
+    color: var(--text-secondary);
+}
+
+.level-price {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: var(--text-primary);
+}
+
+/* ===== CHART CONTAINER ===== */
+.chart-container {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 25px;
+    margin: 40px 0;
+    border: 1px solid var(--border-color);
+    animation: fadeIn 1s ease-out 0.4s both;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.chart-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-header h3 i {
+    color: var(--accent-blue);
+}
+
+.chart-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.chart-btn {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chart-btn:hover {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.chart-btn.active {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+/* ===== SENTIMENT SECTION ===== */
+.sentiment-section {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 30px;
+    margin: 40px 0;
+    border: 1px solid var(--border-color);
+    animation: fadeIn 1s ease-out 0.5s both;
+}
+
+.sentiment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.sentiment-score {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent-green) 0deg, var(--accent-yellow) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: white;
+}
+
+.score-value {
+    font-size: 2em;
+    font-weight: 700;
+}
+
+.sentiment-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.sentiment-factor {
+    background: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.factor-name {
+    color: var(--text-tertiary);
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.factor-bar {
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.factor-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 1s ease;
+}
+
+.factor-fill.positive {
+    background: var(--accent-green);
+}
+
+.factor-fill.neutral {
+    background: var(--accent-yellow);
+}
+
+.factor-fill.negative {
+    background: var(--accent-red);
+}
+
+.factor-value {
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ===== SIGNAL BADGE ===== */
+.signal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 1.2em;
+    animation: pulseGlow 2s infinite;
+    margin-bottom: 20px;
+}
+
+.signal-badge.strong-buy {
+    background: var(--accent-green);
+    color: white;
+}
+
+.signal-badge.weak-buy {
+    background: #86efac;
+    color: #064e3b;
+}
+
+.signal-badge.neutral {
+    background: var(--accent-yellow);
+    color: white;
+}
+
+.signal-badge.weak-sell {
+    background: #fca5a5;
+    color: #7f1d1d;
+}
+
+.signal-badge.strong-sell {
+    background: var(--accent-red);
+    color: white;
+}
+
+/* ===== RECOMMENDATION CARD ===== */
+.recommendation-card {
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    padding: 25px;
+    margin-top: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.recommendation-title {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recommendation-text {
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 40px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--accent-blue);
+    color: white;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    transform: translateY(-3px);
+}
+
+.btn i {
+    transition: transform 0.3s ease;
+}
+
+.btn:hover i {
+    transform: translateX(5px);
+}
+
+/* ===== LOADING OVERLAY ===== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin-top: 20px;
+    color: var(--text-secondary);
+    font-size: 1.1em;
+}
+
+/* ===== TOOLTIP ===== */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 0.85em;
+    border-radius: 8px;
+    white-space: nowrap;
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+    visibility: visible;
+    bottom: calc(100% + 10px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .header-left {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .price-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .levels-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .sentiment-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .chart-wrapper {
+        height: 300px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.4em;
+    }
+    
+    .company-badge {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .prediction-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .price-value {
+        font-size: 1.6em;
+    }
+}
+
+/* ===== NOTIFICATION ===== */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 20px var(--shadow-color);
+    z-index: 10000;
+    animation: slideInRight 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification.success {
+    border-left: 4px solid var(--accent-green);
+}
+
+.notification.error {
+    border-left: 4px solid var(--accent-red);
+}
+</style>
+
+</head>
+
+<body class="light-mode">
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div style="text-align: center;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Analyzing market data...</div>
+    </div>
+</div>
+
+<header>
+    <div class="header-content">
+        <div class="header-left">
+            <h1>
+                <i class="fas fa-chart-line"></i>
+                <span>Stock Prediction</span>
+            </h1>
+            <div class="company-badge">
+                <i class="fas fa-building"></i>
+                <span>Company:</span>
+                <span class="company-symbol" id="companySymbol">Loading...</span>
+            </div>
+        </div>
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-sun"></i>
+            <i class="fas fa-moon"></i>
+            <span>Switch Theme</span>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    
+    <!-- Back Button -->
+    <a href="prediction_options.html" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Options</span>
+    </a>
+    
+    <!-- Market Status Section -->
+    <div class="market-status" id="marketStatus">
+        <div class="status-header">
+            <div class="status-title">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Market Status</span>
+            </div>
+            <div class="status-indicator" id="marketIndicator">
+                <span class="status-dot" id="marketDot"></span>
+                <span id="marketText">Checking...</span>
+            </div>
+        </div>
+        <div class="holidays-list" id="holidaysList">
+            <!-- Will be populated by JS -->
+        </div>
+    </div>
+    
+    <!-- Main Prediction Card -->
+    <div class="prediction-card" id="predictionCard">
+        <div class="prediction-header">
+            <h2>
+                <i class="fas fa-robot"></i>
+                <span id="predictionTitle">AI Price Prediction</span>
+            </h2>
+            <div class="prediction-type-badge" id="predictionType">
+                Next Day
+            </div>
+        </div>
+        
+        <!-- Price Grid -->
+        <div class="price-grid" id="priceGrid">
+            <!-- Will be populated by JS -->
+        </div>
+        
+        <!-- Buy/Sell Levels Section -->
+        <div class="levels-section">
+            <h3 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Trading Levels & Recommendations
+            </h3>
+            
+            <div class="levels-grid" id="levelsGrid">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+        
+        <!-- Position Sizing -->
+        <div class="recommendation-card" id="positionSizing">
+            <!-- Will be populated by JS -->
+        </div>
+    </div>
+    
+    <!-- Price Chart -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                <span>Price Forecast Chart</span>
+            </h3>
+            <div class="chart-controls">
+                <button class="chart-btn active" onclick="changeChartType('line')">
+                    <i class="fas fa-chart-line"></i> Line
+                </button>
+                <button class="chart-btn" onclick="changeChartType('bar')">
+                    <i class="fas fa-chart-bar"></i> Bar
+                </button>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="predictionChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Sentiment Analysis Section -->
+    <div class="sentiment-section" id="sentimentSection">
+        <div class="sentiment-header">
+            <h3>
+                <i class="fas fa-newspaper"></i>
+                Market Sentiment Analysis
+            </h3>
+            <div class="sentiment-score">
+                <div class="score-circle" id="sentimentCircle">0.0</div>
+                <div class="score-value" id="sentimentScore">0.00</div>
+            </div>
+        </div>
+        
+        <!-- Signal Badge -->
+        <div class="signal-badge" id="signalBadge">
+            <i class="fas fa-chart-line"></i>
+            <span id="signalText">Analyzing...</span>
+        </div>
+        
+        <!-- Sentiment Details -->
+        <div class="sentiment-details" id="sentimentDetails">
+            <!-- Will be populated by JS -->
+        </div>
+        
+        <!-- Explanation -->
+        <div class="recommendation-card" id="sentimentExplanation">
+            <!-- Will be populated by JS -->
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button class="btn btn-primary" onclick="newPrediction()">
+            <i class="fas fa-redo-alt"></i>
+            <span>New Prediction</span>
+        </button>
+        <button class="btn btn-secondary" onclick="changeCompany()">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Change Company</span>
+        </button>
+    </div>
+    
+</div>
+
+<script>
+
+// =============================================
+// GLOBAL VARIABLES
+// =============================================
+
+let chartInstance = null;
+let currentTheme = 'light';
+let predictions = [];
+let sentimentData = null;
+
+// Market holidays data
+const marketHolidays = {
+    '2025': [
+        { date: '2025-01-26', name: 'Republic Day' },
+        { date: '2025-03-14', name: 'Holi' },
+        { date: '2025-03-31', name: 'Ramzan Id' },
+        { date: '2025-04-10', name: 'Mahavir Jayanti' },
+        { date: '2025-04-14', name: 'Dr. Ambedkar Jayanti' },
+        { date: '2025-05-01', name: 'Maharashtra Day' },
+        { date: '2025-08-15', name: 'Independence Day' },
+        { date: '2025-08-27', name: 'Ganesh Chaturthi' },
+        { date: '2025-10-02', name: 'Gandhi Jayanti' },
+        { date: '2025-10-24', name: 'Dasara' },
+        { date: '2025-11-05', name: 'Diwali' },
+        { date: '2025-11-15', name: 'Guru Nanak Jayanti' },
+        { date: '2025-12-25', name: 'Christmas' }
+    ],
+    '2026': [
+        { date: '2026-01-26', name: 'Republic Day' },
+        { date: '2026-03-04', name: 'Holi' },
+        { date: '2026-03-20', name: 'Ramzan Id' },
+        { date: '2026-03-30', name: 'Mahavir Jayanti' },
+        { date: '2026-04-14', name: 'Dr. Ambedkar Jayanti' },
+        { date: '2026-05-01', name: 'Maharashtra Day' },
+        { date: '2026-08-15', name: 'Independence Day' },
+        { date: '2026-09-16', name: 'Ganesh Chaturthi' },
+        { date: '2026-10-02', name: 'Gandhi Jayanti' },
+        { date: '2026-10-13', name: 'Dasara' },
+        { date: '2026-10-26', name: 'Diwali' },
+        { date: '2026-11-05', name: 'Guru Nanak Jayanti' },
+        { date: '2026-12-25', name: 'Christmas' }
+    ]
+};
+
+// =============================================
+// THEME MANAGEMENT
+// =============================================
+
+function toggleTheme() {
+    const body = document.body;
+    if (currentTheme === 'light') {
+        body.classList.add('dark-mode');
+        currentTheme = 'dark';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        body.classList.remove('dark-mode');
+        currentTheme = 'light';
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    currentTheme = 'dark';
+}
+
+// =============================================
+// MARKET STATUS FUNCTIONS
+// =============================================
+
+function checkMarketStatus() {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const dateStr = today.toISOString().split('T')[0];
+    const year = today.getFullYear().toString();
+    
+    // Check if weekend
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+        updateMarketStatus('closed', 'Weekend - Market Closed');
+        return;
+    }
+    
+    // Check if holiday
+    const holidays = marketHolidays[year] || [];
+    const holiday = holidays.find(h => h.date === dateStr);
+    
+    if (holiday) {
+        updateMarketStatus('closed', `Holiday - ${holiday.name}`);
+    } else {
+        // Check if market hours (9:15 AM to 3:30 PM)
+        const hour = today.getHours();
+        const minute = today.getMinutes();
+        
+        if ((hour > 9 || (hour === 9 && minute >= 15)) && (hour < 15 || (hour === 15 && minute <= 30))) {
+            updateMarketStatus('open', 'Market Open');
+        } else {
+            updateMarketStatus('closed', 'Market Closed');
+        }
+    }
+    
+    // Display upcoming holidays
+    displayUpcomingHolidays();
+}
+
+function updateMarketStatus(status, text) {
+    const dot = document.getElementById('marketDot');
+    const textEl = document.getElementById('marketText');
+    
+    dot.className = 'status-dot ' + status;
+    textEl.textContent = text;
+}
+
+function displayUpcomingHolidays() {
+    const today = new Date();
+    const holidaysList = document.getElementById('holidaysList');
+    
+    let upcomingHolidays = [];
+    
+    // Get holidays for current year and next year
+    const currentYear = today.getFullYear().toString();
+    const nextYear = (today.getFullYear() + 1).toString();
+    
+    const holidaysCurrent = marketHolidays[currentYear] || [];
+    const holidaysNext = marketHolidays[nextYear] || [];
+    
+    upcomingHolidays = [...holidaysCurrent, ...holidaysNext]
+        .filter(h => new Date(h.date) > today)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 5);
+    
+    if (upcomingHolidays.length > 0) {
+        holidaysList.innerHTML = upcomingHolidays.map(h => `
+            <div class="holiday-badge" data-tooltip="Market closed">
+                <i class="fas fa-calendar-times"></i>
+                <span>${h.date}: ${h.name}</span>
+            </div>
+        `).join('');
+    } else {
+        holidaysList.innerHTML = '<div class="holiday-badge">No upcoming holidays</div>';
+    }
+}
+
+// =============================================
+// LOAD PREDICTION DATA
+// =============================================
+
+async function loadPrediction() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay.style.display = 'flex';
+    
+    try {
+        const company = localStorage.getItem('selectedCompany');
+        const companyName = localStorage.getItem('selectedCompanyName') || company;
+        const predictionType = localStorage.getItem('predictionType');
+        const daysAhead = localStorage.getItem('daysAhead');
+        
+        document.getElementById('companySymbol').textContent = company;
+        
+        if (!company) {
+            window.location.href = 'select_company.html';
+            return;
+        }
+        
+        let apiUrl;
+        if (predictionType === 'future' && daysAhead) {
+            apiUrl = `http://127.0.0.1:8000/predict/combined/${company}?days_ahead=${daysAhead}`;
+            document.getElementById('predictionType').textContent = `${daysAhead}-Day Forecast`;
+            document.getElementById('predictionTitle').textContent = `${daysAhead}-Day Price Forecast`;
+        } else {
+            apiUrl = `http://127.0.0.1:8000/predict/combined/${company}`;
+            document.getElementById('predictionType').textContent = 'Next Day Prediction';
+            document.getElementById('predictionTitle').textContent = 'Next Day Price Prediction';
+        }
+        
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        sentimentData = data;
+        
+        // For future predictions, we need to get all predictions
+        if (predictionType === 'future' && daysAhead) {
+            const futureResponse = await fetch('http://127.0.0.1:8000/predict/future', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    symbol: company,
+                    days_ahead: parseInt(daysAhead)
+                })
+            });
+            
+            const futureData = await futureResponse.json();
+            predictions = futureData.predictions || [];
+        } else {
+            // Get next day prediction
+            const nextDayResponse = await fetch(`http://127.0.0.1:8000/predict/next-day/${company}`);
+            const nextDayData = await nextDayResponse.json();
+            predictions = [nextDayData.prediction];
+        }
+        
+        // Display the data
+        displayPrediction(data);
+        displayBuySellLevels();
+        createChart();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error loading prediction: ' + error.message, 'error');
+    } finally {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
+// =============================================
+// DISPLAY PREDICTION
+// =============================================
+
+function displayPrediction(data) {
+    if (!data) return;
+    
+    const priceGrid = document.getElementById('priceGrid');
+    const prediction = predictions[0] || {};
+    
+    // Calculate price change
+    const priceChange = prediction.close - prediction.open;
+    const priceChangePercent = ((priceChange / prediction.open) * 100) || 0;
+    
+    priceGrid.innerHTML = `
+        <div class="price-item">
+            <div class="price-label">
+                <i class="fas fa-sun"></i>
+                <span>Open</span>
+            </div>
+            <div class="price-value">₹${prediction.open?.toFixed(2) || 'N/A'}</div>
+            <div class="price-change">
+                <i class="fas fa-clock"></i>
+                <span>${prediction.date || 'N/A'}</span>
+            </div>
+        </div>
+        
+        <div class="price-item">
+            <div class="price-label">
+                <i class="fas fa-arrow-up"></i>
+                <span>High</span>
+            </div>
+            <div class="price-value">₹${prediction.high?.toFixed(2) || 'N/A'}</div>
+            <div class="price-change">
+                <i class="fas fa-arrow-up"></i>
+                <span>Daily High</span>
+            </div>
+        </div>
+        
+        <div class="price-item">
+            <div class="price-label">
+                <i class="fas fa-arrow-down"></i>
+                <span>Low</span>
+            </div>
+            <div class="price-value">₹${prediction.low?.toFixed(2) || 'N/A'}</div>
+            <div class="price-change">
+                <i class="fas fa-arrow-down"></i>
+                <span>Daily Low</span>
+            </div>
+        </div>
+        
+        <div class="price-item">
+            <div class="price-label">
+                <i class="fas fa-moon"></i>
+                <span>Close</span>
+            </div>
+            <div class="price-value">₹${prediction.close?.toFixed(2) || 'N/A'}</div>
+            <div class="price-change ${priceChange >= 0 ? 'positive' : 'negative'}">
+                <i class="fas ${priceChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                <span>${Math.abs(priceChangePercent).toFixed(2)}%</span>
+            </div>
+        </div>
+        
+        <div class="price-item">
+            <div class="price-label">
+                <i class="fas fa-chart-bar"></i>
+                <span>Volume</span>
+            </div>
+            <div class="price-value">${formatVolume(prediction.volume || 0)}</div>
+            <div class="price-change">
+                <i class="fas fa-clock"></i>
+                <span>Est. Volume</span>
+            </div>
+        </div>
+    `;
+    
+    // Update sentiment
+    updateSentimentDisplay(data);
+}
+
+// =============================================
+// DISPLAY BUY/SELL LEVELS
+// =============================================
+
+function displayBuySellLevels() {
+    const prediction = predictions[0] || {};
+    if (!prediction.buy_sell_levels) return;
+    
+    const levels = prediction.buy_sell_levels;
+    const levelsGrid = document.getElementById('levelsGrid');
+    
+    levelsGrid.innerHTML = `
+        <div class="level-card buy-card">
+            <div class="level-header">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Buy Levels</span>
+            </div>
+            <ul class="level-list">
+                <li>
+                    <span class="level-name">Conservative Buy</span>
+                    <span class="level-price">₹${levels.buy_levels.conservative}</span>
+                </li>
+                <li>
+                    <span class="level-name">Aggressive Buy</span>
+                    <span class="level-price">₹${levels.buy_levels.aggressive}</span>
+                </li>
+                <li>
+                    <span class="level-name">Strong Support</span>
+                    <span class="level-price">₹${levels.buy_levels.strong_support}</span>
+                </li>
+                <li>
+                    <span class="level-name">Fibonacci 38.2%</span>
+                    <span class="level-price">₹${levels.buy_levels.fibonacci_382 || levels.buy_levels.strong_support}</span>
+                </li>
+                <li>
+                    <span class="level-name">Fibonacci 50%</span>
+                    <span class="level-price">₹${levels.buy_levels.fibonacci_500 || levels.buy_levels.conservative}</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="level-card sell-card">
+            <div class="level-header">
+                <i class="fas fa-chart-line"></i>
+                <span>Sell Levels</span>
+            </div>
+            <ul class="level-list">
+                <li>
+                    <span class="level-name">Conservative Sell</span>
+                    <span class="level-price">₹${levels.sell_levels.conservative}</span>
+                </li>
+                <li>
+                    <span class="level-name">Aggressive Sell</span>
+                    <span class="level-price">₹${levels.sell_levels.aggressive}</span>
+                </li>
+                <li>
+                    <span class="level-name">Strong Resistance</span>
+                    <span class="level-price">₹${levels.sell_levels.strong_resistance}</span>
+                </li>
+                <li>
+                    <span class="level-name">Fibonacci 38.2%</span>
+                    <span class="level-price">₹${levels.sell_levels.fibonacci_382 || levels.sell_levels.strong_resistance}</span>
+                </li>
+                <li>
+                    <span class="level-name">Fibonacci 50%</span>
+                    <span class="level-price">₹${levels.sell_levels.fibonacci_500 || levels.sell_levels.aggressive}</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="level-card stop-card">
+            <div class="level-header">
+                <i class="fas fa-shield-alt"></i>
+                <span>Stop Loss</span>
+            </div>
+            <ul class="level-list">
+                <li>
+                    <span class="level-name">For Buy Position</span>
+                    <span class="level-price">₹${levels.stop_loss.for_buy_position}</span>
+                </li>
+                <li>
+                    <span class="level-name">For Sell Position</span>
+                    <span class="level-price">₹${levels.stop_loss.for_sell_position}</span>
+                </li>
+                <li>
+                    <span class="level-name">Trailing Stop</span>
+                    <span class="level-price">₹${levels.stop_loss.trailing_stop || levels.stop_loss.for_buy_position}</span>
+                </li>
+                <li>
+                    <span class="level-name">Support Level</span>
+                    <span class="level-price">₹${levels.support_level}</span>
+                </li>
+                <li>
+                    <span class="level-name">Resistance Level</span>
+                    <span class="level-price">₹${levels.resistance_level}</span>
+                </li>
+            </ul>
+        </div>
+    `;
+    
+    // Update position sizing
+    const positionSizing = document.getElementById('positionSizing');
+    positionSizing.innerHTML = `
+        <div class="recommendation-title">
+            <i class="fas fa-coins"></i>
+            <span>Position Sizing & Risk Analysis</span>
+        </div>
+        <div class="recommendation-text">
+            <strong>${levels.position_sizing}</strong><br>
+            <small style="color: var(--text-tertiary); display: block; margin-top: 10px;">
+                <i class="fas fa-chart-line"></i> Expected Change: ${levels.expected_change_percent}%<br>
+                <i class="fas fa-wave-square"></i> Volatility: ${levels.volatility}%<br>
+                <i class="fas fa-balance-scale"></i> Risk/Reward Ratio: ${levels.risk_reward_ratio || 'N/A'}<br>
+                <i class="fas fa-arrow-up"></i> Resistance: ₹${levels.resistance_level}<br>
+                <i class="fas fa-arrow-down"></i> Support: ₹${levels.support_level}
+            </small>
+        </div>
+    `;
+}
+
+// =============================================
+// UPDATE SENTIMENT DISPLAY
+// =============================================
+
+function updateSentimentDisplay(data) {
+    const sentimentScore = data.sentiment_score || 0;
+    const signal = data.final_signal || 'Neutral';
+    
+    // Update sentiment circle
+    const circle = document.getElementById('sentimentCircle');
+    const scoreEl = document.getElementById('sentimentScore');
+    
+    // Calculate circle gradient (0 to 100)
+    const percentage = ((sentimentScore + 1) / 2) * 100;
+    const angle = (percentage / 100) * 360;
+    circle.style.background = `conic-gradient(var(--accent-green) ${angle}deg, var(--accent-yellow) 0deg)`;
+    circle.textContent = sentimentScore.toFixed(2);
+    scoreEl.textContent = sentimentScore.toFixed(2);
+    
+    // Update signal badge
+    const badge = document.getElementById('signalBadge');
+    const signalText = document.getElementById('signalText');
+    
+    let badgeClass = 'neutral';
+    let icon = 'fa-minus';
+    
+    const signalLower = signal.toLowerCase();
+    if (signalLower.includes('strong buy')) {
+        badgeClass = 'strong-buy';
+        icon = 'fa-arrow-up';
+    } else if (signalLower.includes('weak buy') || signalLower.includes('buy')) {
+        badgeClass = 'weak-buy';
+        icon = 'fa-arrow-up';
+    } else if (signalLower.includes('strong sell')) {
+        badgeClass = 'strong-sell';
+        icon = 'fa-arrow-down';
+    } else if (signalLower.includes('weak sell') || signalLower.includes('sell')) {
+        badgeClass = 'weak-sell';
+        icon = 'fa-arrow-down';
+    } else {
+        badgeClass = 'neutral';
+        icon = 'fa-minus';
+    }
+    
+    badge.className = `signal-badge ${badgeClass}`;
+    badge.innerHTML = `<i class="fas ${icon}"></i><span>${signal}</span>`;
+    
+    // Update sentiment details and explanation
+    updateSentimentDetails(sentimentScore, signal, data);
+}
+
+function updateSentimentDetails(score, signal, data) {
+    const details = document.getElementById('sentimentDetails');
+    const explanation = document.getElementById('sentimentExplanation');
+    
+    // Calculate sentiment factors
+    const positiveFactor = Math.max(0, score);
+    const negativeFactor = Math.max(0, -score);
+    const neutralFactor = 1 - Math.abs(score);
+    
+    details.innerHTML = `
+        <div class="sentiment-factor">
+            <div class="factor-name">
+                <i class="fas fa-smile" style="color: var(--accent-green);"></i>
+                <span>Positive Sentiment</span>
+            </div>
+            <div class="factor-bar">
+                <div class="factor-fill positive" style="width: ${positiveFactor * 100}%"></div>
+            </div>
+            <div class="factor-value">
+                <span>${(positiveFactor * 100).toFixed(1)}%</span>
+            </div>
+        </div>
+        
+        <div class="sentiment-factor">
+            <div class="factor-name">
+                <i class="fas fa-meh" style="color: var(--accent-yellow);"></i>
+                <span>Neutral Sentiment</span>
+            </div>
+            <div class="factor-bar">
+                <div class="factor-fill neutral" style="width: ${neutralFactor * 100}%"></div>
+            </div>
+            <div class="factor-value">
+                <span>${(neutralFactor * 100).toFixed(1)}%</span>
+            </div>
+        </div>
+        
+        <div class="sentiment-factor">
+            <div class="factor-name">
+                <i class="fas fa-frown" style="color: var(--accent-red);"></i>
+                <span>Negative Sentiment</span>
+            </div>
+            <div class="factor-bar">
+                <div class="factor-fill negative" style="width: ${negativeFactor * 100}%"></div>
+            </div>
+            <div class="factor-value">
+                <span>${(negativeFactor * 100).toFixed(1)}%</span>
+            </div>
+        </div>
+    `;
+    
+    // Sentiment explanation based on score and signal
+    let explanationText = '';
+    let factors = [];
+    
+    if (score > 0.5) {
+        explanationText = 'Strong positive sentiment detected in recent news.';
+        factors = [
+            'Multiple positive news articles detected',
+            'Favorable market sentiment',
+            'Positive earnings expectations',
+            'Strong business momentum',
+            'Analyst upgrades or positive coverage'
+        ];
+    } else if (score > 0.2) {
+        explanationText = 'Moderately positive sentiment with some mixed signals.';
+        factors = [
+            'Some positive news coverage',
+            'Generally optimistic market view',
+            'Stable business outlook',
+            'Moderate growth expectations'
+        ];
+    } else if (score > -0.2) {
+        explanationText = 'Neutral sentiment - market is waiting for clearer direction.';
+        factors = [
+            'Balanced news coverage',
+            'No strong market-moving news',
+            'Trading within expected range',
+            'Mixed analyst opinions'
+        ];
+    } else if (score > -0.5) {
+        explanationText = 'Moderately negative sentiment detected.';
+        factors = [
+            'Some concerning news articles',
+            'Cautious market outlook',
+            'Potential headwinds detected',
+            'Sector weakness'
+        ];
+    } else {
+        explanationText = 'Strong negative sentiment - multiple risk factors identified.';
+        factors = [
+            'Predominantly negative news coverage',
+            'Market concerns about company outlook',
+            'High uncertainty levels',
+            'Regulatory or competitive pressures',
+            'Earnings concerns'
+        ];
+    }
+    
+    // Add price trend factor
+    if (data.price_trend === 'Up') {
+        factors.push('Positive price trend aligning with sentiment');
+    } else {
+        factors.push('Price trend showing caution');
+    }
+    
+    explanation.innerHTML = `
+        <div class="recommendation-title">
+            <i class="fas fa-info-circle"></i>
+            <span>Sentiment Analysis Explanation</span>
+        </div>
+        <div class="recommendation-text">
+            <p><strong>${explanationText}</strong></p>
+            <ul style="margin-top: 15px; list-style: none; padding-left: 0;">
+                ${factors.slice(0, 4).map(f => `
+                    <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-check-circle" style="color: var(--accent-green); font-size: 0.8em;"></i>
+                        <span>${f}</span>
+                    </li>
+                `).join('')}
+            </ul>
+            <small style="color: var(--text-tertiary); margin-top: 15px; display: block;">
+                <i class="fas fa-newspaper"></i> Based on analysis of recent news articles and market headlines
+            </small>
+        </div>
+    `;
+}
+
+// =============================================
+// CREATE CHART
+// =============================================
+
+function createChart(type = 'line') {
+    const ctx = document.getElementById('predictionChart').getContext('2d');
+    
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+    
+    const dates = predictions.map(p => p.date);
+    const prices = predictions.map(p => p.close);
+    
+    chartInstance = new Chart(ctx, {
+        type: type,
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Predicted Price (₹)',
+                data: prices,
+                borderColor: 'var(--accent-blue)',
+                backgroundColor: type === 'line' ? 'rgba(37, 99, 235, 0.1)' : 'var(--accent-blue)',
+                borderWidth: 2,
+                pointBackgroundColor: 'var(--accent-blue)',
+                pointBorderColor: 'white',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.3,
+                fill: type === 'line'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'var(--text-secondary)'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'var(--bg-card)',
+                    titleColor: 'var(--text-primary)',
+                    bodyColor: 'var(--text-secondary)',
+                    borderColor: 'var(--border-color)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            return `₹ ${context.parsed.y.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    grid: {
+                        color: 'var(--chart-grid)'
+                    },
+                    ticks: {
+                        color: 'var(--text-tertiary)',
+                        callback: function(value) {
+                            return '₹' + value;
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: 'var(--text-tertiary)',
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+}
+
+function changeChartType(type) {
+    document.querySelectorAll('.chart-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    createChart(type);
+}
+
+// =============================================
+// UTILITY FUNCTIONS
+// =============================================
+
+function formatVolume(volume) {
+    if (volume >= 10000000) {
+        return (volume / 10000000).toFixed(2) + ' Cr';
+    } else if (volume >= 100000) {
+        return (volume / 100000).toFixed(2) + ' L';
+    } else if (volume >= 1000) {
+        return (volume / 1000).toFixed(2) + ' K';
+    }
+    return volume.toString();
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+        ${message}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function newPrediction() {
+    window.location.href = 'prediction_options.html';
+}
+
+function changeCompany() {
+    localStorage.removeItem('predictionType');
+    localStorage.removeItem('daysAhead');
+    window.location.href = 'select_company.html';
+}
+
+// =============================================
+// INITIALIZATION
+// =============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    checkMarketStatus();
+    loadPrediction();
+    
+    // Refresh market status every minute
+    setInterval(checkMarketStatus, 60000);
+});
+
+</script>
+
+</body>
+</html>
